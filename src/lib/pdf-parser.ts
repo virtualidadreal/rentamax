@@ -128,7 +128,7 @@ export async function parseBorradorPDF(file: File): Promise<BorradorData> {
   const pdfjsLib = await import("pdfjs-dist");
 
   // Set worker source
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const casillas = new Map<string, CasillaData>();
@@ -231,7 +231,8 @@ function parseSpanishNumber(str: string): number {
   // "25.000,50" → 25000.50
   // "-1.234,56" → -1234.56
   const cleaned = str.replace(/\./g, "").replace(",", ".");
-  return parseFloat(cleaned);
+  const result = parseFloat(cleaned);
+  return isNaN(result) ? 0 : result;
 }
 
 export function getCasillaName(number: string): string {

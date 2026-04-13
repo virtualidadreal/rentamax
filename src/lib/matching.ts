@@ -189,6 +189,36 @@ function matchesConditions(
     if (!state.hasMedicalExpenses) return false;
   }
 
+  // Afectado por DANA
+  if (c.affectedByDANA === true) {
+    if (!state.affectedByDANA) return false;
+  }
+
+  // Gastos veterinarios
+  if (c.hasVetExpenses === true) {
+    if (!state.hasVetExpenses) return false;
+  }
+
+  // Gastos deportivos
+  if (c.hasSportsExpenses === true) {
+    if (!state.hasSportsExpenses) return false;
+  }
+
+  // Punto de recarga (sin necesidad de vehiculo electrico)
+  if (c.hasChargingPoint === true) {
+    if (!state.hasChargingPoint) return false;
+  }
+
+  // Casado (para tributacion conjunta)
+  if (c.requiresMarried === true) {
+    if (state.maritalStatus !== "casado") return false;
+  }
+
+  // Nueva actividad autonomo
+  if (c.isNewActivity === true) {
+    if (!state.isNewActivity2025) return false;
+  }
+
   return true;
 }
 
@@ -197,13 +227,14 @@ function estimateSaving(
   state: QuestionnaireState
 ): number {
   if (deduction.maxAmount) {
-    // If there's a percentage and a relevant base amount, calculate
     if (deduction.percentage) {
       let base = 0;
       const cat = deduction.category;
 
       if (cat === "vivienda" && state.hasMortgage) {
         base = Math.min(9040, state.grossIncome * 0.3);
+      } else if (cat === "vivienda" && state.housingType === "alquiler") {
+        base = state.monthlyRent * 12;
       } else if (cat === "donaciones" && state.hasDonations) {
         base = state.donationAmount;
       } else if (cat === "emprendimiento" && state.hasStartupInvestment) {
@@ -211,22 +242,24 @@ function estimateSaving(
       } else if (cat === "vehiculo_electrico" && state.hasElectricVehicle) {
         base = Math.min(state.electricVehicleAmount, 20000);
       } else if (cat === "ahorro" && state.pensionPlanContribution > 0) {
-        // Pension plan reduces taxable income, saving depends on marginal rate
         const marginalRate = getMarginalRate(state.grossIncome);
-        return Math.min(state.pensionPlanContribution, 1500) * marginalRate;
+        return Math.min(state.pensionPlanContribution, deduction.maxAmount) * marginalRate;
+      } else if (cat === "educacion" && state.hasEducationExpenses) {
+        const totalEdu = Object.values(state.educationExpenses).reduce((a, b) => a + b, 0);
+        base = totalEdu;
+      } else if (cat === "salud" && state.hasMedicalExpenses) {
+        base = state.medicalExpenses;
       }
 
       if (base > 0) {
         return Math.min((base * deduction.percentage) / 100, deduction.maxAmount);
       }
     }
+    // For fixed amount deductions (maternidad 1200, familia numerosa 1200, etc)
     return deduction.maxAmount;
   }
 
-  if (deduction.percentage) {
-    return deduction.percentage * 10; // rough estimate
-  }
-
+  // No maxAmount and no percentage = we can't estimate
   return 0;
 }
 

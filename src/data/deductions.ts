@@ -4,18 +4,10 @@
 // Fuentes: AEAT, BOE, Ley 35/2006, portales tributarios autonomicos
 // =============================================================================
 
+import type { CCAA, EmploymentType, HousingType, FamilyType } from '@/lib/types';
+
 export type DeductionType = 'reduccion' | 'deduccion_cuota' | 'exencion' | 'minimo_personal' | 'gasto_deducible';
 export type DeductionScope = 'estatal' | 'autonomica' | 'autonomo';
-
-export type CCAA =
-  | 'andalucia' | 'aragon' | 'asturias' | 'baleares' | 'canarias'
-  | 'cantabria' | 'castilla_la_mancha' | 'castilla_y_leon' | 'cataluna'
-  | 'extremadura' | 'galicia' | 'madrid' | 'murcia' | 'la_rioja'
-  | 'comunidad_valenciana' | 'ceuta' | 'melilla';
-
-export type EmploymentType = 'asalariado' | 'autonomo' | 'desempleado' | 'jubilado' | 'funcionario';
-export type HousingType = 'propiedad' | 'alquiler' | 'ninguna';
-export type FamilyType = 'general' | 'numerosa' | 'numerosa_especial' | 'monoparental';
 
 export interface DeductionConditions {
   ccaa?: CCAA[];
@@ -47,6 +39,12 @@ export interface DeductionConditions {
   hasMedicalExpenses?: boolean;
   isLargeFamily?: boolean;
   isSingleParent?: boolean;
+  affectedByDANA?: boolean;
+  hasVetExpenses?: boolean;
+  hasSportsExpenses?: boolean;
+  hasChargingPoint?: boolean;
+  requiresMarried?: boolean;
+  isNewActivity?: boolean;
 }
 
 export interface Deduction {
@@ -294,7 +292,7 @@ export const deductions: Deduction[] = [
       'Estimacion directa (normal o simplificada)',
     ],
     documentation: ['Alta censal (modelo 036/037)'],
-    conditions: { employment: ['autonomo'] },
+    conditions: { employment: ['autonomo'], isNewActivity: true },
     tips: 'NO es automatica. Hay que marcarla en la casilla 129. Muchos autonomos la desconocen.',
   },
   {
@@ -345,7 +343,7 @@ export const deductions: Deduction[] = [
       'Matrimonio con hijos menores o incapacitados',
     ],
     documentation: ['Libro de familia o certificado de matrimonio'],
-    conditions: {},
+    conditions: { requiresMarried: true },
     tips: 'Conviene si un conyuge tiene ingresos muy bajos o nulos (menos de 3.400 EUR).',
   },
   {
@@ -751,7 +749,7 @@ export const deductions: Deduction[] = [
       'Pago por medios electronicos (no efectivo)',
     ],
     documentation: ['Factura de instalacion', 'Certificado de instalacion electrica'],
-    conditions: { hasElectricVehicle: true },
+    conditions: { hasChargingPoint: true },
   },
   {
     id: 'est_doble_imposicion_internacional',
@@ -1011,7 +1009,7 @@ export const deductions: Deduction[] = [
     amount: 'Totalidad de las ayudas',
     requirements: ['Ayudas por danos personales en emergencias declaradas'],
     documentation: ['Resolucion de la ayuda'],
-    conditions: { isNew2025: true },
+    conditions: { isNew2025: true, affectedByDANA: true },
   },
 
   // =========================================================================
@@ -1576,7 +1574,7 @@ export const deductions: Deduction[] = [
     percentage: 15,
     requirements: ['Residencia habitual en Andalucia'],
     documentation: ['Facturas de gimnasios/clubes'],
-    conditions: { ccaa: ['andalucia'], isNew2025: true },
+    conditions: { ccaa: ['andalucia'], isNew2025: true, hasSportsExpenses: true },
   },
   {
     id: 'and_veterinario',
@@ -1590,7 +1588,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Gastos vinculados a animales de compania o perros de asistencia'],
     documentation: ['Facturas veterinarias'],
-    conditions: { ccaa: ['andalucia'], isNew2025: true },
+    conditions: { ccaa: ['andalucia'], isNew2025: true, hasVetExpenses: true },
   },
   {
     id: 'and_celiaquia',
@@ -2150,7 +2148,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Gastos de consultas veterinarias y vacunacion de perros de asistencia'],
     documentation: ['Facturas veterinarias'],
-    conditions: { ccaa: ['castilla_la_mancha'], isNew2025: true },
+    conditions: { ccaa: ['castilla_la_mancha'], isNew2025: true, hasVetExpenses: true },
   },
 
   // =========================================================================
@@ -2623,7 +2621,7 @@ export const deductions: Deduction[] = [
     percentage: 100,
     requirements: ['Instalacion en vivienda', 'Se descuentan subvenciones'],
     documentation: ['Factura de instalacion'],
-    conditions: { ccaa: ['murcia'], hasElectricVehicle: true, isNew2025: true },
+    conditions: { ccaa: ['murcia'], hasChargingPoint: true, isNew2025: true },
   },
   {
     id: 'mur_enfermedades_raras',
@@ -2664,7 +2662,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Gastos en actividades deportivas'],
     documentation: ['Facturas de gimnasios/centros'],
-    conditions: { ccaa: ['murcia'], isNew2025: true },
+    conditions: { ccaa: ['murcia'], isNew2025: true, hasSportsExpenses: true },
   },
   {
     id: 'mur_veterinario',
@@ -2678,7 +2676,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Gastos veterinarios acreditados'],
     documentation: ['Facturas veterinarias'],
-    conditions: { ccaa: ['murcia'], isNew2025: true },
+    conditions: { ccaa: ['murcia'], isNew2025: true, hasVetExpenses: true },
   },
   {
     id: 'mur_discapacidad',
@@ -2748,7 +2746,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Gastos en actividades deportivas'],
     documentation: ['Facturas de gimnasios/centros'],
-    conditions: { ccaa: ['la_rioja'] },
+    conditions: { ccaa: ['la_rioja'], hasSportsExpenses: true },
   },
   {
     id: 'rio_celiaquia',
@@ -2900,7 +2898,7 @@ export const deductions: Deduction[] = [
     maxAmount: 2000,
     requirements: ['Vivienda habitual danada por DANA', 'BI <= 45.000 EUR individual o 60.000 EUR conjunta'],
     documentation: ['Facturas de reparacion'],
-    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true },
+    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true, affectedByDANA: true },
   },
   {
     id: 'val_salud_bucodental',
@@ -2938,7 +2936,7 @@ export const deductions: Deduction[] = [
     amount: 'Porcentaje de gastos deportivos',
     requirements: ['BI <= 60.000 EUR individual o 78.000 EUR conjunta'],
     documentation: ['Facturas/recibos deportivos'],
-    conditions: { ccaa: ['comunidad_valenciana'] },
+    conditions: { ccaa: ['comunidad_valenciana'], hasSportsExpenses: true },
   },
   {
     id: 'val_conciliacion',
@@ -4832,7 +4830,7 @@ export const deductions: Deduction[] = [
     amount: 'Cantidades satisfechas para reemplazo',
     requirements: ['Vehiculo perdido o danado por DANA'],
     documentation: ['Documentacion del vehiculo', 'Justificante de compra'],
-    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true },
+    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true, affectedByDANA: true },
   },
   {
     id: 'val_dana_enseres',
@@ -4844,7 +4842,7 @@ export const deductions: Deduction[] = [
     amount: 'Porcentaje de gastos de reparacion/sustitucion',
     requirements: ['Enseres danados por DANA'],
     documentation: ['Facturas'],
-    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true },
+    conditions: { ccaa: ['comunidad_valenciana'], isNew2025: true, affectedByDANA: true },
   },
   {
     id: 'val_despoblacion',

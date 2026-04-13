@@ -6,7 +6,7 @@
  */
 
 import { BorradorData } from "./pdf-parser";
-import { QuestionnaireState, initialState, CCAA } from "./types";
+import { QuestionnaireState, CCAA } from "./types";
 
 // Mapa de codigos CCAA de la AEAT a nuestros IDs
 const CCAA_MAP: Record<string, CCAA> = {

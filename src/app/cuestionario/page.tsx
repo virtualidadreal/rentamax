@@ -14,7 +14,6 @@ import { parseBorradorPDF } from "@/lib/pdf-parser";
 import {
   mapBorradorToState,
   MappingResult,
-  ExtractedSummary,
 } from "@/lib/borrador-mapper";
 
 const STEP_TITLES = [
@@ -120,7 +119,7 @@ function NumberInput({
   min,
   max,
 }: {
-  value: number;
+  value: number | null;
   onChange: (v: number) => void;
   placeholder?: string;
   suffix?: string;
@@ -131,7 +130,7 @@ function NumberInput({
     <div className="relative">
       <input
         type="number"
-        value={value || ""}
+        value={value != null && value > 0 ? value : ""}
         onChange={(e) => onChange(Number(e.target.value))}
         placeholder={placeholder}
         min={min}
@@ -209,8 +208,8 @@ function Step1({
 
       <FormField label="Edad (a 31 de diciembre de 2025)">
         <NumberInput
-          value={state.age || 0}
-          onChange={(v) => update({ age: v })}
+          value={state.age}
+          onChange={(v) => update({ age: v > 0 ? v : null })}
           placeholder="Ej: 35"
           min={16}
           max={120}
@@ -1220,7 +1219,7 @@ export default function Cuestionario() {
   const canGoNext = () => {
     switch (currentStep) {
       case 0:
-        return state.ccaa !== "" && state.age !== null && state.age > 0;
+        return state.ccaa !== "" && state.age !== null && state.age > 0 && state.maritalStatus !== "";
       case 3:
         return state.employmentType !== "" && state.grossIncome > 0;
       default:
