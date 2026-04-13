@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { QuestionnaireState } from "@/lib/types";
+import { QuestionnaireState, CCAA_NAMES } from "@/lib/types";
+import type { CCAA } from "@/lib/types";
 import {
   matchDeductions,
   MatchResult,
@@ -12,15 +13,216 @@ import {
   SCOPE_LABELS,
 } from "@/lib/matching";
 import { ExtractedSummary } from "@/lib/borrador-mapper";
+import type {
+  HowToClaim,
+  GeneralGuide,
+} from "@/data/how-to-claim";
+
+function HowToClaimInfo({ guide }: { guide: Partial<HowToClaim> }) {
+  return (
+    <div className="mt-3 pt-3 border-t border-dashed border-border">
+      <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+        <span>📝</span> Como pedirla en Renta Web
+      </h4>
+
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+            guide.isAutomatic
+              ? "bg-green-100 text-green-700"
+              : "bg-amber-100 text-amber-700"
+          }`}
+        >
+          {guide.isAutomatic
+            ? "Suele aparecer en el borrador"
+            : "NO aparece automaticamente - hay que marcarla a mano"}
+        </span>
+      </div>
+
+      {guide.casillas && guide.casillas.length > 0 && (
+        <div className="mb-2 bg-primary-light rounded-lg p-2 text-sm">
+          <span className="font-medium text-primary">
+            Casilla{guide.casillas.length > 1 ? "s" : ""}:
+          </span>{" "}
+          {guide.casillas.join(", ")}
+        </div>
+      )}
+
+      {guide.steps && guide.steps.length > 0 && (
+        <div className="mb-2">
+          <h5 className="text-xs font-medium text-muted mb-1">
+            Pasos en Renta Web:
+          </h5>
+          <ol className="text-sm text-muted space-y-0.5 list-none">
+            {guide.steps.map((step, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-primary shrink-0 font-medium">
+                  {i + 1}.
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {guide.commonMistakes && guide.commonMistakes.length > 0 && (
+        <div className="mb-2 bg-red-50 rounded-lg p-2">
+          <h5 className="text-xs font-medium text-red-700 mb-1">
+            Errores comunes:
+          </h5>
+          <ul className="text-sm text-red-600 space-y-0.5">
+            {guide.commonMistakes.map((mistake, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="shrink-0">!</span>
+                {mistake}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {guide.tips && guide.tips.length > 0 && (
+        <div className="bg-blue-50 rounded-lg p-2">
+          <h5 className="text-xs font-medium text-blue-700 mb-1">
+            Consejos:
+          </h5>
+          <ul className="text-sm text-blue-600 space-y-0.5">
+            {guide.tips.map((tip, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="shrink-0">-</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {guide.deadline && (
+        <div className="mt-2 text-xs text-muted italic">
+          Plazo: {guide.deadline}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GeneralGuideSection({
+  guides,
+  ccaa,
+  autonomicaGuideData,
+}: {
+  guides: GeneralGuide[];
+  ccaa: string;
+  autonomicaGuideData: Record<
+    string,
+    { process: string; importantNotes: string[]; keyDocuments: string[] }
+  >;
+}) {
+  const [expandedGuide, setExpandedGuide] = useState<number | null>(null);
+  const [showAutonomica, setShowAutonomica] = useState(false);
+  const ccaaGuide = ccaa ? autonomicaGuideData[ccaa] : null;
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-5 mb-8">
+      <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+        <span>📖</span> Guia: Como hacer tu declaracion
+      </h3>
+      <p className="text-sm text-muted mb-4">
+        Todo lo que necesitas saber para presentar tu declaracion en Renta Web
+      </p>
+
+      <div className="space-y-2">
+        {guides.map((guide, i) => (
+          <div key={i} className="border border-border rounded-lg">
+            <button
+              className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 rounded-lg"
+              onClick={() =>
+                setExpandedGuide(expandedGuide === i ? null : i)
+              }
+            >
+              <span className="text-sm font-medium">{guide.title}</span>
+              <span className="text-muted text-xs">
+                {expandedGuide === i ? "▲" : "▼"}
+              </span>
+            </button>
+            {expandedGuide === i && (
+              <div className="px-4 pb-3 text-sm text-muted animate-fade-in">
+                {guide.content}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {ccaaGuide && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <button
+            className="w-full text-left flex items-center justify-between"
+            onClick={() => setShowAutonomica(!showAutonomica)}
+          >
+            <h4 className="font-semibold text-sm flex items-center gap-2">
+              <span>🗺️</span> Guia para{" "}
+              {CCAA_NAMES[ccaa as CCAA] || ccaa}
+            </h4>
+            <span className="text-muted text-xs">
+              {showAutonomica ? "▲" : "▼"}
+            </span>
+          </button>
+
+          {showAutonomica && (
+            <div className="mt-3 animate-fade-in">
+              <p className="text-sm text-muted mb-3">{ccaaGuide.process}</p>
+
+              {ccaaGuide.importantNotes.length > 0 && (
+                <div className="mb-3">
+                  <h5 className="text-xs font-medium mb-1">
+                    Notas importantes:
+                  </h5>
+                  <ul className="text-sm text-muted space-y-0.5">
+                    {ccaaGuide.importantNotes.map((note, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-accent shrink-0">-</span>
+                        {note}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {ccaaGuide.keyDocuments.length > 0 && (
+                <div>
+                  <h5 className="text-xs font-medium mb-1">
+                    Documentos clave:
+                  </h5>
+                  <ul className="text-sm text-muted space-y-0.5">
+                    {ccaaGuide.keyDocuments.map((doc, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-primary shrink-0">-</span>
+                        {doc}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DeductionCard({
   deduction,
   expanded,
   onToggle,
+  howToClaimGuide,
 }: {
   deduction: MatchedDeduction;
   expanded: boolean;
   onToggle: () => void;
+  howToClaimGuide?: Partial<HowToClaim>;
 }) {
   return (
     <div
@@ -112,6 +314,8 @@ function DeductionCard({
               <span className="font-medium">Consejo:</span> {deduction.tips}
             </div>
           )}
+
+          {howToClaimGuide && <HowToClaimInfo guide={howToClaimGuide} />}
         </div>
       )}
     </div>
@@ -148,6 +352,16 @@ export default function Resultados() {
   const [filterScope, setFilterScope] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [userCcaa, setUserCcaa] = useState<string>("");
+  const [howToClaimData, setHowToClaimData] = useState<{
+    byId: Record<string, Partial<HowToClaim>>;
+    byCategory: Record<string, HowToClaim>;
+    general: GeneralGuide[];
+    autonomica: Record<
+      string,
+      { process: string; importantNotes: string[]; keyDocuments: string[] }
+    >;
+  } | null>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("rentamax_state");
@@ -163,8 +377,22 @@ export default function Resultados() {
     }
 
     const state: QuestionnaireState = JSON.parse(stored);
-    matchDeductions(state).then((res) => {
+    if (state.ccaa) {
+      setUserCcaa(state.ccaa);
+    }
+
+    // Load deductions and how-to-claim data in parallel
+    Promise.all([
+      matchDeductions(state),
+      import("@/data/how-to-claim").then((mod) => ({
+        byId: mod.howToClaimById,
+        byCategory: mod.howToClaimByCategory,
+        general: mod.generalGuide,
+        autonomica: mod.autonomicaGuide,
+      })),
+    ]).then(([res, htcData]) => {
       setResult(res);
+      setHowToClaimData(htcData);
       setLoading(false);
     });
   }, []);
@@ -205,6 +433,23 @@ export default function Resultados() {
         </div>
       </div>
     );
+  }
+
+  // Helper to get how-to-claim guide for a deduction
+  function getHowToClaimGuide(
+    deduction: MatchedDeduction
+  ): Partial<HowToClaim> | undefined {
+    if (!howToClaimData) return undefined;
+
+    // First check by specific deduction ID
+    const byId = howToClaimData.byId[deduction.id];
+    if (byId) return byId;
+
+    // Then fall back to category guide
+    const byCat = howToClaimData.byCategory[deduction.category];
+    if (byCat) return byCat;
+
+    return undefined;
   }
 
   const filteredDeductions = result.deductions.filter((d) => {
@@ -419,10 +664,20 @@ export default function Resultados() {
                 onToggle={() =>
                   setExpandedId(expandedId === d.id ? null : d.id)
                 }
+                howToClaimGuide={getHowToClaimGuide(d)}
               />
             ))
           )}
         </div>
+
+        {/* General Guide */}
+        {howToClaimData && (
+          <GeneralGuideSection
+            guides={howToClaimData.general}
+            ccaa={userCcaa}
+            autonomicaGuideData={howToClaimData.autonomica}
+          />
+        )}
 
         {/* Disclaimer */}
         <div className="bg-warning-light border border-warning/30 rounded-xl p-4 mb-8">
