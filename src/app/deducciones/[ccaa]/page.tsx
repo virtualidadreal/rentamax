@@ -319,6 +319,26 @@ export default async function CcaaPage({
           </div>
         </div>
       </footer>
+
+      {/* JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": `Deducciones Renta 2025 en ${name}`,
+            "description": `Listado completo de deducciones fiscales disponibles en ${name} para la Renta 2025`,
+            "numberOfItems": autonomicas.length + estatales.length,
+            "itemListElement": autonomicas.slice(0, 10).map((d, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "name": d.name,
+              "description": d.description
+            }))
+          })
+        }}
+      />
     </div>
   );
 }

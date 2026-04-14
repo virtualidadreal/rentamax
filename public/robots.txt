@@ -1,0 +1,65 @@
+# ===========================================
+# ROBOTS.TXT - RentaMax - Optimizado para GEO
+# ===========================================
+
+# Buscadores tradicionales
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# OpenAI - Permitir busqueda, bloquear entrenamiento
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
+# Anthropic - Permitir busqueda, bloquear entrenamiento
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Google IA - Bloquear entrenamiento
+User-agent: Google-Extended
+Disallow: /
+
+# Microsoft
+User-agent: MicrosoftPreview
+Allow: /
+
+# Bloquear crawlers de entrenamiento
+User-agent: CCBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+# Default
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://rentamax.franmilla.com/sitemap.xml

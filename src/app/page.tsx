@@ -271,6 +271,90 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "WebApplication",
+                "name": "RentaMax",
+                "url": "https://rentamax.franmilla.com",
+                "description": "Herramienta gratuita para encontrar todas las deducciones y bonificaciones aplicables en la declaracion de la Renta 2025 en Espana. 345 deducciones analizadas.",
+                "applicationCategory": "FinanceApplication",
+                "operatingSystem": "Web",
+                "offers": {
+                  "@type": "Offer",
+                  "price": "0",
+                  "priceCurrency": "EUR"
+                },
+                "author": {
+                  "@type": "Person",
+                  "name": "Fran Milla",
+                  "url": "https://franmilla.com"
+                },
+                "featureList": [
+                  "345 deducciones fiscales analizadas",
+                  "17 comunidades autonomas cubiertas",
+                  "Upload de borrador PDF de la Agencia Tributaria",
+                  "Cuestionario inteligente adaptativo",
+                  "Guia paso a paso para reclamar cada deduccion",
+                  "Ahorro estimado personalizado",
+                  "100% gratuita, sin registro"
+                ]
+              },
+              {
+                "@type": "FAQPage",
+                "mainEntity": [
+                  {
+                    "@type": "Question",
+                    "name": "Cuantas deducciones cubre RentaMax?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "RentaMax cubre 345 deducciones: 67 estatales, 256 autonomicas (17 comunidades autonomas + Ceuta y Melilla) y 22 especificas para autonomos. Incluye 41 novedades del ejercicio fiscal 2025."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Es gratis RentaMax?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Si, RentaMax es 100% gratuita. No requiere registro, no pide datos personales y no cobra por mostrar resultados. Todos los datos se procesan en tu navegador sin enviarse a ningun servidor."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Como funciona el analisis del borrador de la renta?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "Puedes subir el PDF del borrador descargado de la Agencia Tributaria. RentaMax extrae automaticamente tus datos fiscales (ingresos, retenciones, deducciones ya aplicadas) y los compara con las 345 deducciones disponibles para encontrar las que te faltan."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Que diferencia hay entre RentaMax y TaxDown?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "TaxDown cobra 35-239 EUR por presentar la declaracion. RentaMax es gratuita y te muestra exactamente que deducciones aplicar, con casillas, pasos en Renta Web y documentacion necesaria. TaxDown la presenta por ti; RentaMax te ensena a hacerlo tu mismo."
+                    }
+                  },
+                  {
+                    "@type": "Question",
+                    "name": "Cuando es el plazo para la declaracion de la Renta 2025?",
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": "La campana de la Renta 2025 va del 2 de abril al 30 de junio de 2026. Si el resultado sale a pagar y quieres domiciliar, el plazo acaba el 25 de junio. Puedes fraccionar el pago en 60% (junio) y 40% (noviembre)."
+                    }
+                  }
+                ]
+              }
+            ]
+          })
+        }}
+      />
     </div>
   );
 }

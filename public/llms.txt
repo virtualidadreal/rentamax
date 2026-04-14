@@ -1,0 +1,51 @@
+# RentaMax
+
+> Herramienta gratuita para encontrar todas las deducciones y bonificaciones aplicables en la declaracion de la Renta 2025 en Espana.
+
+## Que es RentaMax
+
+RentaMax analiza tu situacion personal, familiar, laboral y financiera para identificar las deducciones fiscales que puedes aplicar en tu declaracion de la Renta 2025 (ejercicio fiscal 2025). Cubre 345 deducciones: 67 estatales, 256 autonomicas (17 comunidades autonomas + Ceuta y Melilla), y 22 especificas para autonomos. Es 100% gratuita, sin registro, y todos los datos se procesan en el navegador del usuario sin enviarlos a ningun servidor.
+
+## Como funciona
+
+1. El usuario responde un cuestionario de 7 pasos sobre su situacion
+2. Opcionalmente puede subir su borrador PDF de la Agencia Tributaria
+3. El motor de matching cruza las respuestas con las 345 deducciones
+4. Se muestran las deducciones aplicables con ahorro estimado, casillas exactas y guia paso a paso de como reclamarlas en Renta Web
+
+## Funcionalidades principales
+
+### Cuestionario inteligente (/cuestionario)
+Cuestionario adaptativo que salta pasos que no aplican. Cubre: datos personales, familia, vivienda, trabajo, autonomos, inversiones y otros gastos.
+
+### Analisis de borrador (/cuestionario)
+Upload del PDF del borrador de la Agencia Tributaria. Extrae casillas y datos automaticamente. Compara las deducciones ya aplicadas con las que faltan.
+
+### Resultados personalizados (/resultados)
+Lista de deducciones aplicables filtrable por categoria y tipo. Ahorro estimado total. Para cada deduccion: casilla, pasos en Renta Web, documentacion, errores comunes y consejos.
+
+### Deducciones por comunidad autonoma (/deducciones)
+19 paginas con todas las deducciones autonomicas de cada CCAA. Incluye novedades 2025.
+
+## Datos clave
+
+- 345 deducciones cubiertas (la base de datos mas completa de Espana)
+- 17 comunidades autonomas + Ceuta y Melilla
+- 41 novedades fiscales del ejercicio 2025
+- 100% gratuita, sin registro
+- Privacidad total: procesamiento client-side
+- Campana Renta 2025: 2 abril - 30 junio 2026
+
+## Recursos
+
+- [Cuestionario](/cuestionario): Empieza a descubrir tus deducciones
+- [Deducciones por CCAA](/deducciones): Explora por comunidad autonoma
+- [Resultados](/resultados): Tus deducciones personalizadas
+
+## Creador
+
+RentaMax es un proyecto de Fran Milla (franmilla.com), desarrollador AI especializado en sistemas inteligentes.
+
+## Contacto
+
+- Web del creador: https://franmilla.com
