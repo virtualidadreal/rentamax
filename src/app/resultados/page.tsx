@@ -716,9 +716,32 @@ export default function Resultados() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border py-6 px-4 mt-12">
-        <div className="max-w-4xl mx-auto text-center text-sm text-muted">
-          RentaMax 2025 - Herramienta informativa
+      <footer className="border-t border-border pt-8 pb-6 px-4 mt-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center mb-6">
+            <p className="text-xs text-muted mb-1">Un proyecto de</p>
+            <a
+              href="https://franmilla.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <span className="text-lg font-bold text-foreground group-hover:text-primary">
+                Fran Milla
+              </span>
+            </a>
+            <a
+              href="https://franmilla.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 text-xs text-primary hover:text-primary-dark font-medium border border-primary/30 px-3 py-1 rounded-full hover:bg-primary-light"
+            >
+              franmilla.com
+            </a>
+          </div>
+          <div className="text-center text-xs text-muted">
+            RentaMax 2025 - Herramienta informativa. No sustituye el asesoramiento fiscal profesional.
+          </div>
         </div>
       </footer>
     </div>

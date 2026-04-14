@@ -200,15 +200,40 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-muted">
-            RentaMax 2025 - Herramienta informativa. No sustituye el
-            asesoramiento fiscal profesional.
+      <footer className="border-t border-border pt-10 pb-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col items-center mb-8">
+            <p className="text-sm text-muted mb-1">Un proyecto de</p>
+            <a
+              href="https://franmilla.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2 hover:opacity-80"
+            >
+              <span className="text-xl font-bold text-foreground group-hover:text-primary">
+                Fran Milla
+              </span>
+            </a>
+            <p className="text-xs text-muted mt-1">
+              Desarrollador AI &middot; Sistemas inteligentes para empresas y personas
+            </p>
+            <a
+              href="https://franmilla.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 text-xs text-primary hover:text-primary-dark font-medium border border-primary/30 px-4 py-1.5 rounded-full hover:bg-primary-light"
+            >
+              franmilla.com
+            </a>
           </div>
-          <div className="text-sm text-muted">
-            Datos actualizados para la campana de Renta 2025 (ejercicio fiscal
-            2025)
+          <div className="border-t border-border pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-xs text-muted">
+              RentaMax 2025 - Herramienta informativa. No sustituye el
+              asesoramiento fiscal profesional.
+            </div>
+            <div className="text-xs text-muted">
+              Datos actualizados para la Renta 2025 (ejercicio fiscal 2025)
+            </div>
           </div>
         </div>
       </footer>
