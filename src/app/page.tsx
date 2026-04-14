@@ -215,7 +215,7 @@ export default function Home() {
               </span>
             </a>
             <p className="text-xs text-muted mt-1">
-              Desarrollador AI &middot; Sistemas inteligentes para empresas y personas
+              Desarrollado junto a su Humano Aumentado
             </p>
             <a
               href="https://franmilla.com"
