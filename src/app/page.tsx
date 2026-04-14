@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-const features = [
+const features: {
+  icon: string;
+  title: string;
+  description: string;
+  link?: string;
+}[] = [
   {
     icon: "🔍",
     title: "400+ deducciones analizadas",
@@ -24,6 +29,7 @@ const features = [
     title: "Todas las comunidades",
     description:
       "Cubre las 17 comunidades autonomas mas Ceuta y Melilla, cada una con sus deducciones propias.",
+    link: "/deducciones",
   },
   {
     icon: "⚡",
@@ -97,6 +103,14 @@ export default function Home() {
               Como funciona
             </a>
           </div>
+          <div className="mt-6">
+            <Link
+              href="/deducciones"
+              className="text-sm text-primary hover:text-primary-dark font-medium underline underline-offset-4"
+            >
+              Ver deducciones por comunidad autonoma
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -166,16 +180,36 @@ export default function Home() {
             Todo lo que necesitas
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="p-6 rounded-2xl border border-border bg-background card-hover"
-              >
-                <div className="text-3xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted text-sm">{feature.description}</p>
-              </div>
-            ))}
+            {features.map((feature) => {
+              const content = (
+                <>
+                  <div className="text-3xl mb-3">{feature.icon}</div>
+                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted text-sm">{feature.description}</p>
+                  {feature.link && (
+                    <span className="inline-block mt-3 text-primary text-sm font-medium">
+                      Ver todas &rarr;
+                    </span>
+                  )}
+                </>
+              );
+              return feature.link ? (
+                <Link
+                  key={feature.title}
+                  href={feature.link}
+                  className="p-6 rounded-2xl border border-border bg-background card-hover block"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div
+                  key={feature.title}
+                  className="p-6 rounded-2xl border border-border bg-background card-hover"
+                >
+                  {content}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

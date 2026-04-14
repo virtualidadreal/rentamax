@@ -28,21 +28,34 @@ const STEP_TITLES = [
 
 const STEP_ICONS = ["👤", "👨‍👩‍👧‍👦", "🏠", "💼", "📊", "📈", "📝"];
 
+/** Returns the indices of steps that apply given the current state. */
+function getActiveSteps(state: QuestionnaireState): number[] {
+  const steps: number[] = [0, 1, 2, 3]; // Datos, Familia, Vivienda, Trabajo - always
+  // Paso 4 (Autonomos): only if autonomo or ambos
+  if (state.employmentType === "autonomo" || state.employmentType === "ambos") {
+    steps.push(4);
+  }
+  steps.push(5, 6); // Inversiones, Otros - always
+  return steps;
+}
+
 function StepIndicator({
-  current,
-  total,
+  currentStepIndex,
+  activeSteps,
   titles,
 }: {
-  current: number;
-  total: number;
+  currentStepIndex: number;
+  activeSteps: number[];
   titles: string[];
 }) {
-  const progress = ((current + 1) / total) * 100;
+  const displayPosition = activeSteps.indexOf(currentStepIndex);
+  const total = activeSteps.length;
+  const progress = ((displayPosition + 1) / total) * 100;
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-primary">
-          Paso {current + 1} de {total}
+          Paso {displayPosition + 1} de {total}
         </span>
         <span className="text-sm text-muted">{Math.round(progress)}%</span>
       </div>
@@ -53,8 +66,8 @@ function StepIndicator({
         />
       </div>
       <h2 className="text-xl font-semibold mt-4 flex items-center gap-2">
-        <span>{STEP_ICONS[current]}</span>
-        {titles[current]}
+        <span>{STEP_ICONS[currentStepIndex]}</span>
+        {titles[currentStepIndex]}
       </h2>
     </div>
   );
@@ -1216,6 +1229,8 @@ export default function Cuestionario() {
     // Start at step 0 but fields will be pre-filled
   };
 
+  const activeSteps = getActiveSteps(state);
+
   const canGoNext = () => {
     switch (currentStep) {
       case 0:
@@ -1228,14 +1243,15 @@ export default function Cuestionario() {
   };
 
   const goNext = () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+    const posInActive = activeSteps.indexOf(currentStep);
+    if (posInActive < activeSteps.length - 1) {
+      setCurrentStep(activeSteps[posInActive + 1]);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      // Submit - save state and borrador data to session
-      sessionStorage.setItem("rentamax_state", JSON.stringify(state));
+      // Submit - save state and borrador data to localStorage
+      localStorage.setItem("rentamax_state", JSON.stringify(state));
       if (borradorMapping) {
-        sessionStorage.setItem(
+        localStorage.setItem(
           "rentamax_borrador",
           JSON.stringify(borradorMapping.summary)
         );
@@ -1245,8 +1261,9 @@ export default function Cuestionario() {
   };
 
   const goBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    const posInActive = activeSteps.indexOf(currentStep);
+    if (posInActive > 0) {
+      setCurrentStep(activeSteps[posInActive - 1]);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (borradorMapping) {
       setMode("borrador_summary");
@@ -1340,8 +1357,8 @@ export default function Cuestionario() {
         )}
 
         <StepIndicator
-          current={currentStep}
-          total={STEPS.length}
+          currentStepIndex={currentStep}
+          activeSteps={activeSteps}
           titles={STEP_TITLES}
         />
 
@@ -1367,7 +1384,7 @@ export default function Cuestionario() {
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
           >
-            {currentStep === STEPS.length - 1
+            {currentStep === activeSteps[activeSteps.length - 1]
               ? "Ver mis deducciones"
               : "Siguiente"}
           </button>
