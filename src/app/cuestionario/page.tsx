@@ -9,6 +9,7 @@ import {
   CCAA_NAMES,
   CCAA,
   ChildInfo,
+  CompanyBenefit,
 } from "@/lib/types";
 import { parseBorradorPDF } from "@/lib/pdf-parser";
 import {
@@ -295,6 +296,13 @@ function Step1({
           />
         </FormField>
       )}
+
+      <Toggle
+        checked={state.livesInRuralArea}
+        onChange={(v) => update({ livesInRuralArea: v })}
+        label="Vivo en un municipio de menos de 5.000 habitantes"
+        hint="Algunas CCAA ofrecen deducciones por residencia en zonas despobladas"
+      />
     </div>
   );
 }
@@ -428,6 +436,13 @@ function Step2({
           />
         </>
       )}
+
+      <Toggle
+        checked={state.hasFosterCare}
+        onChange={(v) => update({ hasFosterCare: v })}
+        label="Tengo personas en acogimiento familiar"
+        hint="Menores, mayores de 65 o personas con discapacidad en acogimiento"
+      />
     </div>
   );
 }
@@ -482,6 +497,19 @@ function Step3({
             onChange={(v) => update({ hasMortgage: v })}
             label="Tengo hipoteca activa"
           />
+          {state.hasMortgage && (
+            <FormField
+              label="Cuota anual de hipoteca (capital + intereses)"
+              hint="Suma de lo que pagas al ano. Si pagas 800 EUR/mes seran unos 9.600 EUR/ano"
+            >
+              <NumberInput
+                value={state.mortgageAnnualPayment}
+                onChange={(v) => update({ mortgageAnnualPayment: v })}
+                placeholder="Ej: 9600"
+                suffix="EUR/ano"
+              />
+            </FormField>
+          )}
         </>
       )}
 
@@ -513,6 +541,17 @@ function Step3({
 
       {state.isLandlord && (
         <>
+          <FormField
+            label="Ingresos anuales por alquiler"
+            hint="Rendimiento integro del alquiler (antes de gastos)"
+          >
+            <NumberInput
+              value={state.landlordAnnualIncome}
+              onChange={(v) => update({ landlordAnnualIncome: v })}
+              placeholder="Ej: 9000"
+              suffix="EUR/ano"
+            />
+          </FormField>
           <Toggle
             checked={state.landlordInTensionedZone}
             onChange={(v) => update({ landlordInTensionedZone: v })}
@@ -533,6 +572,20 @@ function Step3({
         label="He hecho obras de eficiencia energetica en 2025"
         hint="Reduccion de demanda, mejora de consumo, o rehabilitacion energetica"
       />
+
+      {state.hasEnergyWorks && (
+        <FormField
+          label="Importe invertido en obras de eficiencia"
+          hint="Total gastado en obras de mejora energetica"
+        >
+          <NumberInput
+            value={state.energyWorksAmount}
+            onChange={(v) => update({ energyWorksAmount: v })}
+            placeholder="Ej: 5000"
+            suffix="EUR"
+          />
+        </FormField>
+      )}
     </div>
   );
 }
@@ -615,6 +668,93 @@ function Step4({
         label="He tenido gastos de defensa juridica laboral"
         hint="Pleitos con el empleador, maximo deducible 300 EUR"
       />
+
+      {(state.employmentType === "asalariado" ||
+        state.employmentType === "funcionario" ||
+        state.employmentType === "ambos") && (
+        <>
+          <Toggle
+            checked={state.wasFiredIn2025}
+            onChange={(v) => update({ wasFiredIn2025: v })}
+            label="Me han despedido o he salido de un ERE en 2025"
+            hint="Indemnizacion exenta hasta 180.000 EUR"
+          />
+
+          <Toggle
+            checked={state.workedAbroad}
+            onChange={(v) => update({ workedAbroad: v })}
+            label="He trabajado en el extranjero en 2025"
+            hint="Exencion de hasta 60.100 EUR por trabajos fuera de Espana (art. 7.p)"
+          />
+
+          <FormField
+            label="Beneficios de empresa (retribucion en especie)"
+            hint="Marca los que te proporcione tu empresa"
+          >
+            <div className="space-y-2">
+              {(
+                [
+                  {
+                    value: "seguro_medico",
+                    label: "Seguro medico de empresa",
+                  },
+                  {
+                    value: "tickets_restaurante",
+                    label: "Tickets restaurante",
+                  },
+                  {
+                    value: "transporte",
+                    label: "Abono transporte / tarjeta transporte",
+                  },
+                  {
+                    value: "guarderia",
+                    label: "Cheque/ticket guarderia",
+                  },
+                  {
+                    value: "acciones",
+                    label: "Entrega de acciones o stock options",
+                  },
+                ] as { value: CompanyBenefit; label: string }[]
+              ).map((opt) => (
+                <div
+                  key={opt.value}
+                  className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:border-primary/30 cursor-pointer"
+                  onClick={() => {
+                    const benefits = state.companyBenefits.includes(opt.value)
+                      ? state.companyBenefits.filter((b) => b !== opt.value)
+                      : [...state.companyBenefits, opt.value];
+                    update({ companyBenefits: benefits });
+                  }}
+                >
+                  <div
+                    className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                      state.companyBenefits.includes(opt.value)
+                        ? "border-primary bg-primary"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    {state.companyBenefits.includes(opt.value) && (
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm">{opt.label}</span>
+                </div>
+              ))}
+            </div>
+          </FormField>
+        </>
+      )}
     </div>
   );
 }
@@ -686,17 +826,42 @@ function Step5({
         label="Tengo empleados contratados"
       />
 
-      <FormField
-        label="Gastos deducibles totales estimados"
-        hint="Cuotas RETA, alquiler local, suministros, material, seguros, gestor, etc."
-      >
-        <NumberInput
-          value={state.autonomoExpenses}
-          onChange={(v) => update({ autonomoExpenses: v })}
-          placeholder="Ej: 8000"
-          suffix="EUR/ano"
-        />
-      </FormField>
+      <div className="mb-5">
+        <label className="block text-sm font-medium text-foreground mb-1.5">
+          Desglose de gastos deducibles
+        </label>
+        <p className="text-xs text-muted mb-3">
+          Importes anuales aproximados. Deja en 0 lo que no aplique.
+        </p>
+        <div className="space-y-3">
+          {([
+            { key: "reta", label: "Cuotas RETA (Seguridad Social)", hint: "~300 EUR/mes = 3.600 EUR/ano" },
+            { key: "alquilerLocal", label: "Alquiler local / coworking", hint: "Solo si es de uso exclusivo profesional" },
+            { key: "vehiculo", label: "Vehiculo + combustible", hint: "Solo si es de uso exclusivo profesional" },
+            { key: "suministros", label: "Suministros (luz, internet, telefono)", hint: "30% proporcional si teletrabajas" },
+            { key: "profesional", label: "Gestor, abogado, seguros", hint: "Gestoria, seguro RC, asesoria..." },
+            { key: "otros", label: "Otros (material, formacion, marketing, hardware)", hint: "Todo lo demas deducible" },
+          ] as { key: keyof typeof state.autonomoExpenseBreakdown; label: string; hint: string }[]).map((item) => (
+            <div key={item.key}>
+              <label className="text-xs font-medium text-foreground">{item.label}</label>
+              <p className="text-xs text-muted mb-1">{item.hint}</p>
+              <NumberInput
+                value={state.autonomoExpenseBreakdown[item.key]}
+                onChange={(v) => {
+                  const newBreakdown = { ...state.autonomoExpenseBreakdown, [item.key]: v };
+                  const total = Object.values(newBreakdown).reduce((a, b) => a + b, 0);
+                  update({ autonomoExpenseBreakdown: newBreakdown, autonomoExpenses: total });
+                }}
+                placeholder="0"
+                suffix="EUR/ano"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 p-2 bg-primary-light rounded-lg text-sm text-primary font-medium text-center">
+          Total gastos: {Object.values(state.autonomoExpenseBreakdown).reduce((a, b) => a + b, 0).toLocaleString("es-ES")} EUR/ano
+        </div>
+      </div>
     </div>
   );
 }
@@ -893,11 +1058,36 @@ function Step7({
         hint="Deducible en algunas CCAA (Andalucia, CLM, Murcia, etc.)"
       />
 
+      {state.hasVetExpenses && (
+        <FormField label="Gastos veterinarios anuales">
+          <NumberInput
+            value={state.vetExpenses}
+            onChange={(v) => update({ vetExpenses: v })}
+            placeholder="Ej: 300"
+            suffix="EUR"
+          />
+        </FormField>
+      )}
+
       <Toggle
         checked={state.affectedByDANA}
         onChange={(v) => update({ affectedByDANA: v })}
         label="He sido afectado por la DANA"
         hint="Existen deducciones especiales para afectados en Comunitat Valenciana y otras zonas"
+      />
+
+      <Toggle
+        checked={state.hasCeliac}
+        onChange={(v) => update({ hasCeliac: v })}
+        label="Alguien en mi unidad familiar es celiaco"
+        hint="Deduccion en Andalucia, Asturias y La Rioja (nueva 2025)"
+      />
+
+      <Toggle
+        checked={state.hasStudentLoans}
+        onChange={(v) => update({ hasStudentLoans: v })}
+        label="Estoy pagando prestamos de estudios"
+        hint="Deduccion por intereses en Madrid y Baleares"
       />
     </div>
   );

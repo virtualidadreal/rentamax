@@ -45,6 +45,15 @@ export interface DeductionConditions {
   hasChargingPoint?: boolean;
   requiresMarried?: boolean;
   isNewActivity?: boolean;
+  // New conditions
+  hasFosterCare?: boolean;
+  livesInRuralArea?: boolean;
+  hasCeliac?: boolean;
+  hasStudentLoans?: boolean;
+  wasFiredIn2025?: boolean;
+  workedAbroad?: boolean;
+  hasCompanyBenefits?: boolean;
+  companyBenefit?: string;
 }
 
 export interface Deduction {
@@ -802,7 +811,7 @@ export const deductions: Deduction[] = [
       'No reincorporacion a la empresa',
     ],
     documentation: ['Carta de despido', 'Acta de conciliacion SMAC o sentencia', 'Finiquito'],
-    conditions: { employment: ['asalariado'], isNew2025: true },
+    conditions: { employment: ['asalariado'], isNew2025: true, wasFiredIn2025: true },
     tips: 'Novedad 2025: desde 3 abril, la conciliacion SMAC ya exime sin ratificacion judicial.',
   },
   {
@@ -820,7 +829,7 @@ export const deductions: Deduction[] = [
       'Impuesto de naturaleza analoga al IRPF en el pais de destino',
     ],
     documentation: ['Justificacion de dias trabajados fuera', 'Contratos'],
-    conditions: { employment: ['asalariado'] },
+    conditions: { employment: ['asalariado'], workedAbroad: true },
   },
   {
     id: 'est_exencion_venta_vivienda_65',
@@ -955,7 +964,7 @@ export const deductions: Deduction[] = [
     amount: 'Hasta 11 EUR/dia laborable',
     requirements: ['Emision nominativa', 'Establecimientos de hosteleria', 'No acumulables'],
     documentation: ['Tickets restaurante'],
-    conditions: { employment: ['asalariado'] },
+    conditions: { employment: ['asalariado'], companyBenefit: 'tickets_restaurante' },
   },
   {
     id: 'est_exencion_seguro_medico_empresa',
@@ -968,7 +977,7 @@ export const deductions: Deduction[] = [
     maxAmount: 500,
     requirements: ['Seguro satisfecho por la empresa'],
     documentation: ['Poliza de seguro'],
-    conditions: { employment: ['asalariado'] },
+    conditions: { employment: ['asalariado'], companyBenefit: 'seguro_medico' },
   },
   {
     id: 'est_exencion_acciones_empresa',
@@ -984,7 +993,7 @@ export const deductions: Deduction[] = [
       'Mantener acciones al menos 3 anos',
     ],
     documentation: ['Documentacion de entrega de acciones'],
-    conditions: { employment: ['asalariado'] },
+    conditions: { employment: ['asalariado'], companyBenefit: 'acciones' },
   },
   {
     id: 'est_exencion_transporte_publico',
@@ -997,7 +1006,7 @@ export const deductions: Deduction[] = [
     maxAmount: 1500,
     requirements: ['Transporte publico colectivo', 'Desplazamiento domicilio-trabajo'],
     documentation: ['Justificante de abono transporte'],
-    conditions: { employment: ['asalariado'] },
+    conditions: { employment: ['asalariado'], companyBenefit: 'transporte' },
   },
   {
     id: 'est_exencion_dana_incendios',
@@ -1601,7 +1610,7 @@ export const deductions: Deduction[] = [
     maxAmount: 100,
     requirements: ['Diagnostico de celiaquia acreditado'],
     documentation: ['Informe medico'],
-    conditions: { ccaa: ['andalucia'], isNew2025: true },
+    conditions: { ccaa: ['andalucia'], isNew2025: true, hasCeliac: true },
   },
   {
     id: 'and_material_escolar',
@@ -1809,7 +1818,7 @@ export const deductions: Deduction[] = [
     maxAmount: 100,
     requirements: ['Diagnostico de celiaquia acreditado'],
     documentation: ['Informe medico'],
-    conditions: { ccaa: ['asturias'], isNew2025: true },
+    conditions: { ccaa: ['asturias'], isNew2025: true, hasCeliac: true },
   },
   {
     id: 'ast_transporte_publico',
@@ -2121,7 +2130,7 @@ export const deductions: Deduction[] = [
     percentage: 25,
     requirements: ['Residencia habitual en municipio con riesgo de despoblacion en CLM'],
     documentation: ['Empadronamiento'],
-    conditions: { ccaa: ['castilla_la_mancha'] },
+    conditions: { ccaa: ['castilla_la_mancha'], livesInRuralArea: true },
   },
   {
     id: 'clm_ahorro_vivienda',
@@ -2376,7 +2385,7 @@ export const deductions: Deduction[] = [
     percentage: 15,
     requirements: ['Residencia habitual en municipio <3.000 hab de Extremadura'],
     documentation: ['Empadronamiento'],
-    conditions: { ccaa: ['extremadura'] },
+    conditions: { ccaa: ['extremadura'], livesInRuralArea: true },
   },
   {
     id: 'ext_material_escolar',
@@ -2759,7 +2768,7 @@ export const deductions: Deduction[] = [
     maxAmount: 250,
     requirements: ['Diagnostico medico de celiaquia'],
     documentation: ['Informe medico'],
-    conditions: { ccaa: ['la_rioja'], isNew2025: true },
+    conditions: { ccaa: ['la_rioja'], isNew2025: true, hasCeliac: true },
     tips: 'Primera comunidad de Espana en implantar esta deduccion.',
   },
   {
@@ -3121,7 +3130,7 @@ export const deductions: Deduction[] = [
     amount: 'Cantidades adicionales por residencia en zona despoblada',
     requirements: ['Residencia en municipio con riesgo de despoblacion de Aragon'],
     documentation: ['Alta censal', 'Empadronamiento'],
-    conditions: { ccaa: ['aragon'], employment: ['autonomo'] },
+    conditions: { ccaa: ['aragon'], employment: ['autonomo'], livesInRuralArea: true },
   },
   {
     id: 'ara_dacion_pago',
@@ -3225,7 +3234,7 @@ export const deductions: Deduction[] = [
     maxAmount: 1000,
     requirements: ['Residencia en concejo con riesgo de despoblacion', 'Inicio actividad en 2025'],
     documentation: ['Alta en actividad', 'Empadronamiento'],
-    conditions: { ccaa: ['asturias'] },
+    conditions: { ccaa: ['asturias'], livesInRuralArea: true },
   },
   {
     id: 'ast_libros_texto',
@@ -3428,7 +3437,7 @@ export const deductions: Deduction[] = [
     amount: 'Porcentaje de intereses satisfechos',
     requirements: ['Prestamos para master o doctorado'],
     documentation: ['Certificado de intereses del banco'],
-    conditions: { ccaa: ['baleares'] },
+    conditions: { ccaa: ['baleares'], hasStudentLoans: true },
   },
   {
     id: 'bal_vehiculo_electrico',
@@ -3561,7 +3570,7 @@ export const deductions: Deduction[] = [
     maxAmount: 330,
     requirements: ['Acogimiento familiar durante todo el periodo'],
     documentation: ['Documentacion de acogimiento'],
-    conditions: { ccaa: ['canarias'] },
+    conditions: { ccaa: ['canarias'], hasFosterCare: true },
   },
   {
     id: 'can_vivienda_discapacidad',
@@ -3675,7 +3684,7 @@ export const deductions: Deduction[] = [
     amount: 'Porcentaje de cantidades satisfechas',
     requirements: ['Vivienda en municipio con riesgo de despoblamiento'],
     documentation: ['Contrato de alquiler', 'Recibos'],
-    conditions: { ccaa: ['cantabria'], housingType: 'alquiler' },
+    conditions: { ccaa: ['cantabria'], housingType: 'alquiler', livesInRuralArea: true },
   },
   {
     id: 'cnt_guarderia_despoblacion',
@@ -3689,7 +3698,7 @@ export const deductions: Deduction[] = [
     percentage: 30,
     requirements: ['Menores de 3 anos', 'Municipio con riesgo de despoblamiento'],
     documentation: ['Facturas de guarderia'],
-    conditions: { ccaa: ['cantabria'], hasChildren: true, childrenMaxAge: 3 },
+    conditions: { ccaa: ['cantabria'], hasChildren: true, childrenMaxAge: 3, livesInRuralArea: true },
   },
   {
     id: 'cnt_educacion_despoblacion',
@@ -3702,7 +3711,7 @@ export const deductions: Deduction[] = [
     maxAmount: 200,
     requirements: ['Hijos <25 anos en municipio despoblado que estudian fuera'],
     documentation: ['Certificado de matricula'],
-    conditions: { ccaa: ['cantabria'], hasChildren: true, hasEducationExpenses: true },
+    conditions: { ccaa: ['cantabria'], hasChildren: true, hasEducationExpenses: true, livesInRuralArea: true },
   },
   {
     id: 'cnt_jovenes_despoblacion',
@@ -3716,7 +3725,7 @@ export const deductions: Deduction[] = [
     percentage: 20,
     requirements: ['Menores de 40 anos en municipio despoblado'],
     documentation: ['Empadronamiento'],
-    conditions: { ccaa: ['cantabria'], maxAge: 40 },
+    conditions: { ccaa: ['cantabria'], maxAge: 40, livesInRuralArea: true },
   },
   {
     id: 'cnt_donaciones',
@@ -3847,7 +3856,7 @@ export const deductions: Deduction[] = [
     maxAmount: 500,
     requirements: ['Acogimiento no remunerado', 'Convivencia > 183 dias'],
     documentation: ['Documentacion de acogimiento'],
-    conditions: { ccaa: ['castilla_la_mancha'] },
+    conditions: { ccaa: ['castilla_la_mancha'], hasFosterCare: true },
   },
   {
     id: 'clm_acogimiento_mayores',
@@ -4040,7 +4049,7 @@ export const deductions: Deduction[] = [
     amount: 'Porcentaje de cuota autonomica',
     requirements: ['Residencia en medio rural', 'Actividad economica en el municipio'],
     documentation: ['Alta censal', 'Empadronamiento'],
-    conditions: { ccaa: ['castilla_y_leon'], employment: ['autonomo'] },
+    conditions: { ccaa: ['castilla_y_leon'], employment: ['autonomo'], livesInRuralArea: true },
   },
 
   // =========================================================================
@@ -4070,7 +4079,7 @@ export const deductions: Deduction[] = [
     maxAmount: 250,
     requirements: ['Convivencia > 183 dias'],
     documentation: ['Documentacion de acogimiento'],
-    conditions: { ccaa: ['extremadura'] },
+    conditions: { ccaa: ['extremadura'], hasFosterCare: true },
   },
   {
     id: 'ext_cuidado_hijos_14',
@@ -4112,7 +4121,7 @@ export const deductions: Deduction[] = [
     percentage: 10,
     requirements: ['Vivienda en municipio <3.000 hab de Extremadura'],
     documentation: ['Escritura de compraventa'],
-    conditions: { ccaa: ['extremadura'], housingType: 'propiedad' },
+    conditions: { ccaa: ['extremadura'], housingType: 'propiedad', livesInRuralArea: true },
   },
   {
     id: 'ext_intereses_vivienda_joven',
@@ -4327,7 +4336,7 @@ export const deductions: Deduction[] = [
     maxAmount: 928,
     requirements: ['Convivencia > 183 dias', 'BI <= 26.414,22 EUR individual o 37.322,20 EUR conjunta'],
     documentation: ['Documentacion de acogimiento'],
-    conditions: { ccaa: ['madrid'] },
+    conditions: { ccaa: ['madrid'], hasFosterCare: true },
   },
   {
     id: 'mad_acogimiento_mayores',
@@ -4340,7 +4349,7 @@ export const deductions: Deduction[] = [
     maxAmount: 1546,
     requirements: ['Mayor de 65 o discapacidad >= 33%', 'Convivencia > 183 dias', 'Sin contraprestacion'],
     documentation: [],
-    conditions: { ccaa: ['madrid'] },
+    conditions: { ccaa: ['madrid'], hasFosterCare: true },
   },
   {
     id: 'mad_cuidado_ascendientes',
@@ -4392,7 +4401,7 @@ export const deductions: Deduction[] = [
     amount: '100% de intereses',
     requirements: ['Prestamo para estudios universitarios'],
     documentation: ['Certificado de intereses'],
-    conditions: { ccaa: ['madrid'] },
+    conditions: { ccaa: ['madrid'], hasStudentLoans: true },
   },
   {
     id: 'mad_donaciones_fundaciones',
@@ -4670,7 +4679,7 @@ export const deductions: Deduction[] = [
     amount: 'Deduccion por inicio de actividad',
     requirements: ['Inicio de actividad en municipio rural de La Rioja'],
     documentation: ['Alta censal', 'Empadronamiento'],
-    conditions: { ccaa: ['la_rioja'], employment: ['autonomo'], isNew2025: true },
+    conditions: { ccaa: ['la_rioja'], employment: ['autonomo'], isNew2025: true, livesInRuralArea: true },
   },
   {
     id: 'rio_hipoteca_subida',
@@ -4854,7 +4863,7 @@ export const deductions: Deduction[] = [
     amount: 'Cantidades segun municipio',
     requirements: ['Residencia en municipio despoblado'],
     documentation: ['Empadronamiento'],
-    conditions: { ccaa: ['comunidad_valenciana'] },
+    conditions: { ccaa: ['comunidad_valenciana'], livesInRuralArea: true },
   },
   {
     id: 'val_ela',

@@ -64,6 +64,12 @@ export type MaritalStatus =
   | "viudo";
 export type TaxMode = "individual" | "conjunta";
 export type EstimationType = "directa_simplificada" | "directa_normal" | "modulos";
+export type CompanyBenefit =
+  | "seguro_medico"
+  | "tickets_restaurante"
+  | "transporte"
+  | "guarderia"
+  | "acciones";
 
 export interface ChildInfo {
   age: number;
@@ -79,6 +85,7 @@ export interface QuestionnaireState {
   taxMode: TaxMode;
   hasDisability: boolean;
   disabilityDegree: number;
+  livesInRuralArea: boolean;
 
   // Step 2: Familia
   children: ChildInfo[];
@@ -87,17 +94,21 @@ export interface QuestionnaireState {
   ascendantsOver65: number;
   ascendantsOver75: number;
   ascendantsWithDisability: boolean;
+  hasFosterCare: boolean;
 
   // Step 3: Vivienda
   housingType: HousingType;
   housingBoughtBefore2013: boolean;
   hasMortgage: boolean;
+  mortgageAnnualPayment: number;
   rentContractBefore2015: boolean;
   monthlyRent: number;
   isLandlord: boolean;
+  landlordAnnualIncome: number;
   landlordInTensionedZone: boolean;
   landlordToYoung: boolean;
   hasEnergyWorks: boolean;
+  energyWorksAmount: number;
   energyWorksType: string[];
 
   // Step 4: Trabajo
@@ -106,12 +117,23 @@ export interface QuestionnaireState {
   hasMovedForWork: boolean;
   unionDues: number;
   hasLegalDefenseExpenses: boolean;
+  wasFiredIn2025: boolean;
+  workedAbroad: boolean;
+  companyBenefits: CompanyBenefit[];
 
   // Step 5: Autonomos
   worksFromHome: boolean;
   estimationType: EstimationType;
   isNewActivity2025: boolean;
   autonomoExpenses: number;
+  autonomoExpenseBreakdown: {
+    reta: number;
+    alquilerLocal: number;
+    vehiculo: number;
+    suministros: number;
+    profesional: number;
+    otros: number;
+  };
   hasEmployees: boolean;
 
   // Step 6: Inversiones
@@ -141,7 +163,10 @@ export interface QuestionnaireState {
   hasSportsExpenses: boolean;
   sportsExpenses: number;
   hasVetExpenses: boolean;
+  vetExpenses: number;
   affectedByDANA: boolean;
+  hasCeliac: boolean;
+  hasStudentLoans: boolean;
 }
 
 export const initialState: QuestionnaireState = {
@@ -151,6 +176,7 @@ export const initialState: QuestionnaireState = {
   taxMode: "individual",
   hasDisability: false,
   disabilityDegree: 0,
+  livesInRuralArea: false,
 
   children: [],
   familyType: "general",
@@ -158,16 +184,20 @@ export const initialState: QuestionnaireState = {
   ascendantsOver65: 0,
   ascendantsOver75: 0,
   ascendantsWithDisability: false,
+  hasFosterCare: false,
 
   housingType: "propiedad",
   housingBoughtBefore2013: false,
   hasMortgage: false,
+  mortgageAnnualPayment: 0,
   rentContractBefore2015: false,
   monthlyRent: 0,
   isLandlord: false,
+  landlordAnnualIncome: 0,
   landlordInTensionedZone: false,
   landlordToYoung: false,
   hasEnergyWorks: false,
+  energyWorksAmount: 0,
   energyWorksType: [],
 
   employmentType: "",
@@ -175,11 +205,22 @@ export const initialState: QuestionnaireState = {
   hasMovedForWork: false,
   unionDues: 0,
   hasLegalDefenseExpenses: false,
+  wasFiredIn2025: false,
+  workedAbroad: false,
+  companyBenefits: [],
 
   worksFromHome: false,
   estimationType: "directa_simplificada",
   isNewActivity2025: false,
   autonomoExpenses: 0,
+  autonomoExpenseBreakdown: {
+    reta: 0,
+    alquilerLocal: 0,
+    vehiculo: 0,
+    suministros: 0,
+    profesional: 0,
+    otros: 0,
+  },
   hasEmployees: false,
 
   pensionPlanContribution: 0,
@@ -207,5 +248,8 @@ export const initialState: QuestionnaireState = {
   hasSportsExpenses: false,
   sportsExpenses: 0,
   hasVetExpenses: false,
+  vetExpenses: 0,
   affectedByDANA: false,
+  hasCeliac: false,
+  hasStudentLoans: false,
 };

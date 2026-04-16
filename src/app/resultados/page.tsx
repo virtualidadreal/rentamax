@@ -11,6 +11,7 @@ import {
   CATEGORY_LABELS,
   CATEGORY_ICONS,
   SCOPE_LABELS,
+  TaxModeComparison,
 } from "@/lib/matching";
 import { ExtractedSummary } from "@/lib/borrador-mapper";
 import type {
@@ -224,6 +225,23 @@ function DeductionCard({
   onToggle: () => void;
   howToClaimGuide?: Partial<HowToClaim>;
 }) {
+  const [refineAmount, setRefineAmount] = useState<number>(0);
+  const [showRefine, setShowRefine] = useState(false);
+
+  const canRefine =
+    deduction.relevance === "direct" &&
+    (!deduction.estimatedSaving || deduction.estimatedSaving === 0) &&
+    (deduction.percentage || deduction.maxAmount);
+
+  const refinedSaving =
+    showRefine && refineAmount > 0 && deduction.percentage
+      ? Math.round(
+          (refineAmount * deduction.percentage) / 100
+        )
+      : 0;
+
+  const displaySaving = refinedSaving > 0 ? refinedSaving : deduction.estimatedSaving;
+
   return (
     <div
       className={`border rounded-xl p-4 bg-card card-hover cursor-pointer ${
@@ -259,11 +277,9 @@ function DeductionCard({
           <p className="text-sm text-muted mt-1">{deduction.description}</p>
         </div>
         <div className="text-right shrink-0">
-          {deduction.estimatedSaving ? (
-            <div className="text-lg font-bold text-accent">
-              {deduction.estimatedSaving >= 1
-                ? `${Math.round(deduction.estimatedSaving).toLocaleString("es-ES")} EUR`
-                : "-"}
+          {displaySaving && displaySaving >= 1 ? (
+            <div className={`text-lg font-bold ${refinedSaving > 0 ? "text-primary" : "text-accent"}`}>
+              {Math.round(displaySaving).toLocaleString("es-ES")} EUR
             </div>
           ) : null}
           <div className="text-xs text-muted">{deduction.amount}</div>
@@ -276,6 +292,50 @@ function DeductionCard({
             <div className="mb-3 bg-primary-light rounded-lg p-2 text-sm">
               <span className="font-medium text-primary">Casilla:</span>{" "}
               {deduction.casilla}
+            </div>
+          )}
+
+          {/* Refine estimate inline */}
+          {canRefine && (
+            <div className="mb-3 bg-blue-50 rounded-lg p-3">
+              {!showRefine ? (
+                <button
+                  className="text-sm text-primary font-medium hover:text-primary-dark"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowRefine(true);
+                  }}
+                >
+                  Afinar calculo - Introduce tu importe real
+                </button>
+              ) : (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <label className="text-xs font-medium text-foreground">
+                    Importe real (EUR)
+                  </label>
+                  <div className="flex gap-2 mt-1">
+                    <input
+                      type="number"
+                      value={refineAmount || ""}
+                      onChange={(e) =>
+                        setRefineAmount(Number(e.target.value) || 0)
+                      }
+                      placeholder="Ej: 1000"
+                      className="flex-1 px-2 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    {refinedSaving > 0 && (
+                      <div className="flex items-center text-sm font-bold text-primary">
+                        {Math.round(refinedSaving).toLocaleString("es-ES")} EUR
+                      </div>
+                    )}
+                  </div>
+                  {deduction.percentage && (
+                    <p className="text-xs text-muted mt-1">
+                      Deduccion del {deduction.percentage}% sobre tu importe
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -316,6 +376,89 @@ function DeductionCard({
           )}
 
           {howToClaimGuide && <HowToClaimInfo guide={howToClaimGuide} />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TaxModeComparisonSection({
+  comparison,
+}: {
+  comparison: TaxModeComparison;
+}) {
+  const better = comparison.recommendation;
+  const betterLabel = better === "conjunta" ? "Conjunta" : "Individual";
+  const worseLabel = better === "conjunta" ? "Individual" : "Conjunta";
+  const betterSaving =
+    better === "conjunta"
+      ? comparison.conjuntaSaving
+      : comparison.individualSaving;
+  const worseSaving =
+    better === "conjunta"
+      ? comparison.individualSaving
+      : comparison.conjuntaSaving;
+
+  return (
+    <div className="bg-card border-2 border-primary rounded-xl p-5 mb-8 animate-fade-in">
+      <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+        <span>⚖️</span> Conjunta vs Individual
+      </h3>
+      <p className="text-sm text-muted mb-4">
+        Hemos calculado tu declaracion en ambas modalidades
+      </p>
+
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div
+          className={`rounded-lg p-4 ${
+            better === "conjunta"
+              ? "bg-accent-light border-2 border-accent"
+              : "bg-gray-50 border border-border"
+          }`}
+        >
+          <div className="text-xs text-muted mb-1">Conjunta</div>
+          <div className="text-xl font-bold">
+            {Math.round(comparison.conjuntaSaving).toLocaleString("es-ES")} EUR
+          </div>
+          <div className="text-xs text-muted">ahorro estimado</div>
+          {better === "conjunta" && (
+            <div className="mt-2 text-xs font-semibold text-accent">
+              RECOMENDADA
+            </div>
+          )}
+        </div>
+        <div
+          className={`rounded-lg p-4 ${
+            better === "individual"
+              ? "bg-accent-light border-2 border-accent"
+              : "bg-gray-50 border border-border"
+          }`}
+        >
+          <div className="text-xs text-muted mb-1">Individual</div>
+          <div className="text-xl font-bold">
+            {Math.round(comparison.individualSaving).toLocaleString("es-ES")}{" "}
+            EUR
+          </div>
+          <div className="text-xs text-muted">ahorro estimado</div>
+          {better === "individual" && (
+            <div className="mt-2 text-xs font-semibold text-accent">
+              RECOMENDADA
+            </div>
+          )}
+        </div>
+      </div>
+
+      {comparison.difference > 0 && (
+        <div className="bg-accent-light/50 rounded-lg p-3 text-center">
+          <p className="text-sm font-semibold text-accent">
+            Te conviene tributar en {betterLabel}: ahorras{" "}
+            {Math.round(comparison.difference).toLocaleString("es-ES")} EUR mas
+          </p>
+          <p className="text-xs text-muted mt-1">
+            {betterLabel}: {Math.round(betterSaving).toLocaleString("es-ES")}{" "}
+            EUR vs {worseLabel}:{" "}
+            {Math.round(worseSaving).toLocaleString("es-ES")} EUR
+          </p>
         </div>
       )}
     </div>
@@ -586,6 +729,13 @@ export default function Resultados() {
     return true;
   });
 
+  const directDeductions = filteredDeductions.filter(
+    (d) => d.relevance === "direct"
+  );
+  const ccaaPotentialDeductions = filteredDeductions.filter(
+    (d) => d.relevance === "ccaa_potential"
+  );
+
   const categories = Object.keys(result.byCategory);
   const scopes = Object.keys(result.byScope);
 
@@ -613,9 +763,18 @@ export default function Resultados() {
           <p className="text-muted">
             Hemos encontrado{" "}
             <span className="font-semibold text-foreground">
-              {result.deductions.length} deducciones
+              {result.directCount} deducciones
             </span>{" "}
-            aplicables a tu situacion
+            que aplican a tu situacion
+            {result.ccaaPotentialCount > 0 && (
+              <span>
+                {" "}y{" "}
+                <span className="font-semibold text-foreground">
+                  {result.ccaaPotentialCount} mas
+                </span>{" "}
+                de tu comunidad que revisar
+              </span>
+            )}
           </p>
         </div>
 
@@ -629,8 +788,8 @@ export default function Resultados() {
           <SummaryCard
             icon="📋"
             label="Deducciones"
-            value={String(result.deductions.length)}
-            sub="aplicables"
+            value={String(result.directCount)}
+            sub="confirmadas"
           />
           <SummaryCard
             icon="🏛️"
@@ -651,6 +810,11 @@ export default function Resultados() {
           ccaa={userCcaa}
         />
 
+        {/* Conjunta vs Individual comparison */}
+        {result.taxModeComparison && (
+          <TaxModeComparisonSection comparison={result.taxModeComparison} />
+        )}
+
         {/* Highlights */}
         {result.highlights.length > 0 && (
           <div className="bg-accent-light border border-accent/20 rounded-xl p-4 mb-8">
@@ -668,60 +832,112 @@ export default function Resultados() {
         )}
 
         {/* Borrador comparison */}
-        {borradorSummary && (
-          <div className="bg-card border-2 border-primary rounded-xl p-5 mb-8 animate-fade-in">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-              📊 Analisis de tu borrador
-            </h3>
+        {borradorSummary && (() => {
+          // Find deductions in our results that are NOT in the borrador
+          const borradorCasillas = new Set(
+            borradorSummary.deduccionesAplicadas.map((d) => d.casilla)
+          );
+          const missingDeductions = result.deductions.filter(
+            (d) =>
+              d.relevance === "direct" &&
+              d.casilla &&
+              !borradorCasillas.has(d.casilla) &&
+              (d.estimatedSaving || 0) > 0
+          );
+          const missingSaving = missingDeductions.reduce(
+            (sum, d) => sum + (d.estimatedSaving || 0),
+            0
+          );
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-xs text-muted">Deducciones en borrador</div>
-                <div className="text-xl font-bold">
-                  {borradorSummary.deduccionesAplicadas.length}
+          return (
+            <div className="bg-card border-2 border-primary rounded-xl p-5 mb-8 animate-fade-in">
+              <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                <span>📊</span> Analisis de tu borrador
+              </h3>
+
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="text-xs text-muted">En tu borrador</div>
+                  <div className="text-xl font-bold">
+                    {borradorSummary.deduccionesAplicadas.length}
+                  </div>
+                  <div className="text-xs text-muted">
+                    {borradorSummary.deduccionesAplicadasTotal.toLocaleString("es-ES")} EUR
+                  </div>
+                </div>
+                <div className="bg-accent-light rounded-lg p-3">
+                  <div className="text-xs text-accent">Te faltan</div>
+                  <div className="text-xl font-bold text-accent">
+                    {missingDeductions.length}
+                  </div>
+                  <div className="text-xs text-accent">
+                    +{Math.round(missingSaving).toLocaleString("es-ES")} EUR
+                  </div>
+                </div>
+                <div className="bg-primary-light rounded-lg p-3">
+                  <div className="text-xs text-primary">Potencial total</div>
+                  <div className="text-xl font-bold text-primary">
+                    {Math.round(
+                      borradorSummary.deduccionesAplicadasTotal + missingSaving
+                    ).toLocaleString("es-ES")}
+                  </div>
+                  <div className="text-xs text-primary">EUR</div>
                 </div>
               </div>
-              <div className="bg-accent-light rounded-lg p-3">
-                <div className="text-xs text-accent">Deducciones encontradas</div>
-                <div className="text-xl font-bold text-accent">
-                  {result.deductions.length}
-                </div>
-              </div>
-            </div>
 
-            {result.deductions.length > borradorSummary.deduccionesAplicadas.length && (
-              <div className="bg-accent-light/50 rounded-lg p-4">
-                <p className="font-semibold text-accent mb-1">
-                  Hemos encontrado{" "}
-                  {result.deductions.length -
-                    borradorSummary.deduccionesAplicadas.length}{" "}
-                  deducciones adicionales
-                </p>
-                <p className="text-sm text-foreground/70">
-                  Tu borrador tiene {borradorSummary.deduccionesAplicadas.length}{" "}
-                  deducciones aplicadas por un total de{" "}
-                  {borradorSummary.deduccionesAplicadasTotal.toLocaleString("es-ES")}{" "}
-                  EUR. Nuestro analisis ha encontrado{" "}
-                  {result.deductions.length - borradorSummary.deduccionesAplicadas.length}{" "}
-                  deducciones mas que podrias estar aplicando. Revisa la lista
-                  completa abajo para ver cuales te faltan.
-                </p>
-                {borradorSummary.resultadoActual !== undefined && (
-                  <p className="text-sm font-medium mt-2 text-accent">
-                    Con tu resultado actual de{" "}
-                    {borradorSummary.resultadoActual < 0 ? "devolucion" : "pago"}{" "}
-                    de{" "}
+              {missingDeductions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">
+                    Deducciones que te faltan por aplicar:
+                  </h4>
+                  <div className="space-y-2">
+                    {missingDeductions.slice(0, 10).map((d) => (
+                      <div
+                        key={d.id}
+                        className="flex items-center justify-between bg-accent-light/30 rounded-lg px-3 py-2"
+                      >
+                        <div className="flex-1">
+                          <span className="text-sm font-medium">
+                            {d.name}
+                          </span>
+                          {d.casilla && (
+                            <span className="ml-2 text-xs bg-primary-light text-primary px-1.5 py-0.5 rounded">
+                              Casilla {d.casilla}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm font-bold text-accent shrink-0 ml-3">
+                          +{Math.round(d.estimatedSaving || 0).toLocaleString("es-ES")} EUR
+                        </span>
+                      </div>
+                    ))}
+                    {missingDeductions.length > 10 && (
+                      <p className="text-xs text-muted text-center">
+                        y {missingDeductions.length - 10} deducciones mas...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {borradorSummary.resultadoActual !== undefined && missingSaving > 0 && (
+                <div className="mt-4 bg-accent-light/50 rounded-lg p-3 text-center">
+                  <p className="text-sm font-semibold text-accent">
+                    Tu borrador dice{" "}
+                    {borradorSummary.resultadoActual < 0
+                      ? "devolucion"
+                      : "a pagar"}
+                    :{" "}
                     {Math.abs(borradorSummary.resultadoActual).toLocaleString("es-ES")}{" "}
-                    EUR, aplicando estas deducciones adicionales podrias mejorar
-                    tu resultado en hasta{" "}
-                    {Math.round(result.totalEstimatedSaving).toLocaleString("es-ES")}{" "}
-                    EUR.
+                    EUR. Aplicando las deducciones faltantes podrias mejorar tu
+                    resultado en unos{" "}
+                    {Math.round(missingSaving).toLocaleString("es-ES")} EUR.
                   </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Category breakdown */}
         <div className="bg-card border border-border rounded-xl p-4 mb-8">
@@ -778,26 +994,85 @@ export default function Resultados() {
           </div>
         </div>
 
-        {/* Deduction list */}
-        <div className="space-y-3 mb-12">
-          {filteredDeductions.length === 0 ? (
-            <div className="text-center py-8 text-muted">
-              No se encontraron deducciones con estos filtros
+        {/* Direct deductions - confirmed for this user */}
+        {directDeductions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
+              Aplican a tu situacion
+            </h2>
+            <p className="text-sm text-muted mb-4">
+              Deducciones confirmadas segun tus respuestas
+            </p>
+            <div className="space-y-3">
+              {directDeductions.map((d) => (
+                <DeductionCard
+                  key={d.id}
+                  deduction={d}
+                  expanded={expandedId === d.id}
+                  onToggle={() =>
+                    setExpandedId(expandedId === d.id ? null : d.id)
+                  }
+                  howToClaimGuide={getHowToClaimGuide(d)}
+                />
+              ))}
             </div>
-          ) : (
-            filteredDeductions.map((d) => (
-              <DeductionCard
-                key={d.id}
-                deduction={d}
-                expanded={expandedId === d.id}
-                onToggle={() =>
-                  setExpandedId(expandedId === d.id ? null : d.id)
-                }
-                howToClaimGuide={getHowToClaimGuide(d)}
-              />
-            ))
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Potential deductions - might apply */}
+        {ccaaPotentialDeductions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold mb-1 flex items-center gap-2">
+              Otras deducciones de{" "}
+              {userCcaa
+                ? CCAA_NAMES[userCcaa as CCAA] || "tu comunidad"
+                : "tu comunidad"}
+            </h2>
+            <p className="text-sm text-muted mb-4">
+              Deducciones autonomicas que podrian aplicarte segun tu situacion
+              concreta
+            </p>
+            <div className="space-y-3">
+              {ccaaPotentialDeductions.map((d) => (
+                <DeductionCard
+                  key={d.id}
+                  deduction={d}
+                  expanded={expandedId === d.id}
+                  onToggle={() =>
+                    setExpandedId(expandedId === d.id ? null : d.id)
+                  }
+                  howToClaimGuide={getHowToClaimGuide(d)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Link to general info deductions page */}
+        {result.generalInfoCount > 0 && (
+          <div className="bg-card border border-border rounded-xl p-5 mb-8 text-center">
+            <h3 className="font-semibold text-foreground mb-1">
+              Deducciones generales
+            </h3>
+            <p className="text-sm text-muted mb-3">
+              Hay {result.generalInfoCount} deducciones estatales que podrian
+              aplicarte en situaciones concretas (becas, loterias, planes de
+              ahorro...)
+            </p>
+            <Link
+              href="/deducciones/generales"
+              className="inline-block bg-gray-100 text-foreground px-5 py-2.5 rounded-lg font-medium hover:bg-gray-200 text-sm border border-border"
+            >
+              Ver deducciones generales
+            </Link>
+          </div>
+        )}
+
+        {directDeductions.length === 0 && ccaaPotentialDeductions.length === 0 && (
+          <div className="text-center py-8 text-muted mb-12">
+            No se encontraron deducciones con estos filtros
+          </div>
+        )}
 
         {/* General Guide */}
         {howToClaimData && (
