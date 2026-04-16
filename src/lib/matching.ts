@@ -480,15 +480,29 @@ function estimateSaving(
     return Math.round(amount * marginalRate);
   }
 
+  // Pension/savings: only the main plan gets the contribution saving
+  // Avoid showing the same 1500 EUR contribution across 5 different plan types
+  if (deduction.category === "ahorro" && state.pensionPlanContribution > 0) {
+    if (deduction.id === "est_plan_pensiones_individual") {
+      const actual = Math.min(state.pensionPlanContribution, 1500);
+      return Math.round(actual * marginalRate);
+    }
+    // Other pension types: show 0 unless user explicitly has them
+    // (we don't ask which plan type, so only count the main individual one)
+    return 0;
+  }
+
   // Has maxAmount but no percentage or base → use maxAmount
   if (deduction.maxAmount) {
     if (type === "deduccion_cuota") return deduction.maxAmount;
     return Math.round(deduction.maxAmount * marginalRate);
   }
 
-  // No maxAmount, no percentage, but has base → base is the deductible amount
-  if (base > 0) {
-    if (type === "deduccion_cuota") return Math.round(base);
+  // No maxAmount, no percentage, but has base → only use for gasto_deducible
+  // (which means the full amount is deductible from income)
+  // Do NOT use for deduccion_cuota without percentage - that would use the
+  // mortgage/rent base as a direct tax credit, which is wrong
+  if (base > 0 && (type === "gasto_deducible" || type === "reduccion")) {
     return Math.round(base * marginalRate);
   }
 
@@ -613,33 +627,41 @@ function getDeductionBase(
   if (cat === "autonomo" || deduction.id.startsWith("aut_")) {
     const b = state.autonomoExpenseBreakdown;
     const id = deduction.id;
-    // Map specific autonomo deductions to their sub-category
-    if (id === "aut_cuotas_reta" || id === "aut_mutualistas_alternativos")
-      return b.reta;
+
+    // Each sub-category is SHARED among its mapped deductions.
+    // The total for that bucket is the user's input, divided among deductions.
+    // RETA bucket: 2 deductions share it
+    if (id === "aut_cuotas_reta") return b.reta;
+    if (id === "aut_mutualistas_alternativos") return 0; // separate from RETA
+
+    // Single-mapping buckets
     if (id === "aut_alquiler_local") return b.alquilerLocal;
-    if (id === "aut_vehiculo" || id === "aut_gastos_viaje" || id === "aut_dietas_manutencion")
-      return b.vehiculo;
-    if (id === "aut_suministros_hogar" || id === "aut_comunicaciones")
-      return b.suministros;
-    if (
-      id === "aut_seguros_rc" ||
-      id === "aut_colegios_profesionales_autonomo" ||
-      id === "aut_servicios_profesionales" ||
-      id === "aut_gastos_financieros"
-    )
-      return b.profesional;
-    if (
-      id === "aut_formacion" ||
-      id === "aut_hardware_software" ||
-      id === "aut_publicidad_marketing" ||
-      id === "aut_consumos_explotacion" ||
-      id === "aut_amortizaciones" ||
-      id === "aut_tributos_deducibles" ||
-      id === "aut_gastos_representacion"
-    )
-      return b.otros;
-    if (id === "aut_sueldos_empleados") return 0; // needs separate employee cost data
-    // Fallback to total
+
+    // Vehiculo bucket: 3 deductions → split
+    if (id === "aut_vehiculo") return Math.round(b.vehiculo * 0.5);
+    if (id === "aut_gastos_viaje") return Math.round(b.vehiculo * 0.3);
+    if (id === "aut_dietas_manutencion") return Math.round(b.vehiculo * 0.2);
+
+    // Suministros bucket: 2 deductions → split
+    if (id === "aut_suministros_hogar") return Math.round(b.suministros * 0.6);
+    if (id === "aut_comunicaciones") return Math.round(b.suministros * 0.4);
+
+    // Profesional bucket: 4 deductions → split
+    if (id === "aut_servicios_profesionales") return Math.round(b.profesional * 0.5);
+    if (id === "aut_seguros_rc") return Math.round(b.profesional * 0.2);
+    if (id === "aut_colegios_profesionales_autonomo") return Math.round(b.profesional * 0.15);
+    if (id === "aut_gastos_financieros") return Math.round(b.profesional * 0.15);
+
+    // Otros bucket: 7 deductions → split proportionally
+    if (id === "aut_hardware_software") return Math.round(b.otros * 0.25);
+    if (id === "aut_formacion") return Math.round(b.otros * 0.15);
+    if (id === "aut_publicidad_marketing") return Math.round(b.otros * 0.2);
+    if (id === "aut_consumos_explotacion") return Math.round(b.otros * 0.15);
+    if (id === "aut_amortizaciones") return Math.round(b.otros * 0.1);
+    if (id === "aut_tributos_deducibles") return Math.round(b.otros * 0.1);
+    if (id === "aut_gastos_representacion") return Math.round(b.otros * 0.05);
+
+    if (id === "aut_sueldos_empleados") return 0;
     return state.autonomoExpenses;
   }
 
@@ -728,6 +750,34 @@ export async function matchDeductions(
       });
     }
   }
+
+  // Post-process: remove mutually exclusive duplicates and unsupported exenciones
+  const landlordIds = [
+    "est_reduccion_alquiler_arrendador_90",
+    "est_reduccion_alquiler_arrendador_70",
+    "est_reduccion_alquiler_arrendador_60",
+    "est_reduccion_alquiler_arrendador_50",
+  ];
+  // Keep only the best landlord reduction (highest saving)
+  const landlordMatches = matched
+    .filter((d) => landlordIds.includes(d.id))
+    .sort((a, b) => (b.estimatedSaving || 0) - (a.estimatedSaving || 0));
+  const landlordToRemove = new Set(
+    landlordMatches.slice(1).map((d) => d.id)
+  );
+
+  // Exenciones that require specific circumstances not asked in questionnaire
+  const unsupportedExenciones = new Set([
+    "est_exencion_reinversion_vivienda", // requires selling your home
+    "est_exencion_dacion_pago", // requires giving house to bank
+    "est_exencion_65_venta_vivienda", // requires selling home at 65+
+  ]);
+
+  // Remove from matched array
+  const idsToRemove = new Set([...landlordToRemove, ...unsupportedExenciones]);
+  const cleaned = matched.filter((d) => !idsToRemove.has(d.id));
+  matched.length = 0;
+  matched.push(...cleaned);
 
   // Sort: direct first, then ccaa_potential, then general_info
   const relevanceOrder: Record<DeductionRelevance, number> = {
